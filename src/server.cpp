@@ -2,11 +2,11 @@
 #include <cstdlib>
 #include <string>
 #include <cstring>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netdb.h>
+#include <unistd.h> //Offers access to the POSIX operating system API, including functions like close(), read(), and write()
+#include <sys/types.h> //Defines data types used in system calls, such as pid_t, size_t, and ssize_t
+#include <sys/socket.h> //Contains definitions for socket functions and structures, including socket(), bind(), listen(), and accept().
+#include <arpa/inet.h> //Provides functions for manipulating numeric IP addresses, such as inet_pton() and inet_ntop().
+#include <netdb.h> //Used for network database operations, including functions like gethostbyname() and getaddrinfo().
 
 int main(int argc, char **argv) {
   // Flush after every std::cout / std::cerr
@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
     return 1;
   }
   
-  int connection_backlog = 5;
+  int connection_backlog = 5; //The connection_backlog specifies the maximum length to which the queue of pending connections may grow
   if (listen(server_fd, connection_backlog) != 0) {
     std::cerr << "listen failed\n";
     return 1;
@@ -52,8 +52,23 @@ int main(int argc, char **argv) {
   int client_addr_len = sizeof(client_addr);
   
   std::cout << "Waiting for a client to connect...\n";
+
+  while(true)
+  {
+    int client_socket = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
+
+    if(client_socket<0){
+      std::cout<<"Failed to accept connection\n";
+      return 1;
+    }
+
+    std::cout<<"Client Connected\n";
+    send(client_socket, "HTTP/1.1 200 OK\r\n\r\n", 20,0);
+
+    close(client_socket);
+  }
   
-  accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
+  
   std::cout << "Client connected\n";
   
   close(server_fd);
